@@ -3,6 +3,7 @@ import {
   registerUser,
   loginUser,
   getCurrentUser,
+  logoutUser,
 } from "../services/users-service";
 
 export const usersRoute = new Elysia({ prefix: "/api/users" })
@@ -51,15 +52,39 @@ export const usersRoute = new Elysia({ prefix: "/api/users" })
       }),
     },
   )
-  .get("/current", async ({ headers, set }) => {
+  .derive(({ headers }) => {
+    const authorization = headers["authorization"];
+    if (!authorization || !authorization.startsWith("Bearer ")) {
+      return { token: null };
+    }
+
+    const token = authorization.split(" ")[1];
+    return { token };
+  })
+  .get("/current", async ({ token, set }) => {
     try {
-      const authorization = headers["authorization"];
-      if (!authorization || !authorization.startsWith("Bearer ")) {
+      if (!token) {
         throw new Error("Unauthorized");
       }
 
-      const token = authorization.split(" ")[1];
-      const result = await getCurrentUser(token!);
+      const result = await getCurrentUser(token);
+      return { data: result };
+    } catch (error: any) {
+      if (error.message === "Unauthorized") {
+        set.status = 401;
+        return { error: "Unauthorized" };
+      }
+      set.status = 500;
+      return { error: "Terjadi kesalahan internal" };
+    }
+  })
+  .delete("/logout", async ({ token, set }) => {
+    try {
+      if (!token) {
+        throw new Error("Unauthorized");
+      }
+
+      const result = await logoutUser(token);
       return { data: result };
     } catch (error: any) {
       if (error.message === "Unauthorized") {
