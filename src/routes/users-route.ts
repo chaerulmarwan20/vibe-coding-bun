@@ -28,7 +28,12 @@ export const usersRoute = new Elysia({ prefix: "/api/users" })
         email: t.String({ maxLength: 255 }),
         password: t.String({ maxLength: 255 }),
       }),
-    },
+      detail: {
+        tags: ["Users API"],
+        summary: "Registrasi Pengguna Baru",
+        description: "Mendaftarkan pengguna baru ke sistem database.",
+      },
+    }
   )
   .post(
     "/login",
@@ -50,7 +55,12 @@ export const usersRoute = new Elysia({ prefix: "/api/users" })
         email: t.String({ maxLength: 255 }),
         password: t.String({ maxLength: 255 }),
       }),
-    },
+      detail: {
+        tags: ["Users API"],
+        summary: "Login Pengguna",
+        description: "Autentikasi pengguna dan mengembalikan token sesi.",
+      },
+    }
   )
   .derive(({ headers }) => {
     const authorization = headers["authorization"];
@@ -61,37 +71,57 @@ export const usersRoute = new Elysia({ prefix: "/api/users" })
     const token = authorization.split(" ")[1];
     return { token };
   })
-  .get("/current", async ({ token, set }) => {
-    try {
-      if (!token) {
-        throw new Error("Unauthorized");
-      }
+  .get(
+    "/current",
+    async ({ token, set }) => {
+      try {
+        if (!token) {
+          throw new Error("Unauthorized");
+        }
 
-      const result = await getCurrentUser(token);
-      return { data: result };
-    } catch (error: any) {
-      if (error.message === "Unauthorized") {
-        set.status = 401;
-        return { error: "Unauthorized" };
+        const result = await getCurrentUser(token);
+        return { data: result };
+      } catch (error: any) {
+        if (error.message === "Unauthorized") {
+          set.status = 401;
+          return { error: "Unauthorized" };
+        }
+        set.status = 500;
+        return { error: "Terjadi kesalahan internal" };
       }
-      set.status = 500;
-      return { error: "Terjadi kesalahan internal" };
+    },
+    {
+      detail: {
+        tags: ["Users API"],
+        summary: "Get Current User Profile",
+        security: [{ bearerAuth: [] }],
+      },
     }
-  })
-  .delete("/logout", async ({ token, set }) => {
-    try {
-      if (!token) {
-        throw new Error("Unauthorized");
-      }
+  )
+  .delete(
+    "/logout",
+    async ({ token, set }) => {
+      try {
+        if (!token) {
+          throw new Error("Unauthorized");
+        }
 
-      const result = await logoutUser(token);
-      return { data: result };
-    } catch (error: any) {
-      if (error.message === "Unauthorized") {
-        set.status = 401;
-        return { error: "Unauthorized" };
+        const result = await logoutUser(token);
+        return { data: result };
+      } catch (error: any) {
+        if (error.message === "Unauthorized") {
+          set.status = 401;
+          return { error: "Unauthorized" };
+        }
+        set.status = 500;
+        return { error: "Terjadi kesalahan internal" };
       }
-      set.status = 500;
-      return { error: "Terjadi kesalahan internal" };
+    },
+    {
+      detail: {
+        tags: ["Users API"],
+        summary: "Logout User",
+        security: [{ bearerAuth: [] }],
+      },
     }
-  });
+  );
