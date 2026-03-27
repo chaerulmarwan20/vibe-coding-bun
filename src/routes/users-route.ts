@@ -33,6 +33,11 @@ export const usersRoute = new Elysia({ prefix: "/api/users" })
         summary: "Registrasi Pengguna Baru",
         description: "Mendaftarkan pengguna baru ke sistem database.",
       },
+      response: {
+        200: t.Object({ data: t.String() }),
+        400: t.Object({ error: t.String() }),
+        500: t.Object({ error: t.String() }),
+      },
     }
   )
   .post(
@@ -59,6 +64,11 @@ export const usersRoute = new Elysia({ prefix: "/api/users" })
         tags: ["Users API"],
         summary: "Login Pengguna",
         description: "Autentikasi pengguna dan mengembalikan token sesi.",
+      },
+      response: {
+        200: t.Object({ data: t.String() }),
+        401: t.Object({ error: t.String() }),
+        500: t.Object({ error: t.String() }),
       },
     }
   )
@@ -96,6 +106,18 @@ export const usersRoute = new Elysia({ prefix: "/api/users" })
         summary: "Get Current User Profile",
         security: [{ bearerAuth: [] }],
       },
+      response: {
+        200: t.Object({
+          data: t.Object({
+            id: t.Number(),
+            name: t.String(),
+            email: t.String(),
+            createdAt: t.Any(),
+          }),
+        }),
+        401: t.Object({ error: t.String() }),
+        500: t.Object({ error: t.String() }),
+      },
     }
   )
   .delete(
@@ -122,6 +144,11 @@ export const usersRoute = new Elysia({ prefix: "/api/users" })
         tags: ["Users API"],
         summary: "Logout User",
         security: [{ bearerAuth: [] }],
+      },
+      response: {
+        200: t.Object({ data: t.String() }),
+        401: t.Object({ error: t.String() }),
+        500: t.Object({ error: t.String() }),
       },
     }
   );
